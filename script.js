@@ -23,7 +23,7 @@
   function freshState(themeName='Classic Hearts') {
     const t=THEMES[themeName];
     const numberColors=t.numberColors?[...t.numberColors]:t.colors.flatMap(color=>[color,color]);
-    const savedIcons=t.savedIcons?t.savedIcons.map(icon=>({...icon})):t.icons.map(value=>({type:themeName==='Classic Hearts'?'text':'emoji',value,data:''}));
+    const savedIcons=t.savedIcons?t.savedIcons.map(icon=>({angle:0,...icon})):t.icons.map(value=>({type:'emoji',value,data:'',angle:0}));
     const fortuneStyles=(t.fortuneStyles||DEFAULT_ROTATIONS.map(angle=>({angle,size:'auto',bold:true,italic:false}))).map(style=>({...style}));
     return {version:4,name:`${themeName} Fortune Teller`,theme:themeName,numbers:[...DEFAULT_NUMBERS],fortunes:[...t.fortunes],fortuneStyles,icons:savedIcons,numberColors,accent:t.accent,font:t.font,showNumbers:t.showNumbers??true,foldLines:t.foldLines??true,cutLine:true};
   }
@@ -46,9 +46,10 @@
     return `<text class="svg-edit" data-edit="fortune" data-index="${index}" x="${x}" y="${y-((lines.length-1)*lh/2)}" text-anchor="middle" dominant-baseline="middle" font-size="${size}" font-weight="${weight}" font-style="${italic}" fill="${color}" transform="rotate(${Number(style.angle)||0} ${x} ${y})">${tspans}</text>`;
   }
   function iconMarkup(icon,x,y,index) {
-    if(icon.type==='image'||icon.type==='svg') return `<image class="svg-edit" data-edit="icon" data-index="${index}" href="${escapeXML(icon.data)}" x="${x-13}" y="${y-13}" width="26" height="26" preserveAspectRatio="xMidYMid meet"/>`;
+    const rotation=`rotate(${Number(icon.angle)||0} ${x} ${y})`;
+    if(icon.type==='image'||icon.type==='svg') return `<image class="svg-edit" data-edit="icon" data-index="${index}" href="${escapeXML(icon.data)}" x="${x-13}" y="${y-13}" width="26" height="26" preserveAspectRatio="xMidYMid meet" transform="${rotation}"/>`;
     const size=icon.type==='emoji'?17:(String(icon.value).length<=2?20:7);
-    return `<text class="svg-edit" data-edit="icon" data-index="${index}" x="${x}" y="${y+.5}" text-anchor="middle" dominant-baseline="middle" font-size="${size}" font-weight="800" fill="${state.numberColors[index*2]}">${escapeXML(icon.value||'❤')}</text>`;
+    return `<text class="svg-edit" data-edit="icon" data-index="${index}" x="${x}" y="${y+.5}" text-anchor="middle" dominant-baseline="middle" font-size="${size}" font-weight="800" fill="${state.numberColors[index*2]}" transform="${rotation}">${escapeXML(icon.value||'❤')}</text>`;
   }
 
   function buildSVG() {
@@ -95,7 +96,7 @@
     const editor=document.querySelector('.editor-panel');if(editor)editor.scrollTop=editorY;
   }
   function makeEditors(){
-    elements.outside.innerHTML=CORNER_NAMES.map((name,i)=>`<div class="corner-editor" data-corner="${i}"><strong>${name}</strong><div class="corner-editor-row"><select class="icon-type" data-index="${i}" aria-label="${name} icon type"><option value="emoji">Emoji</option><option value="text">Text</option><option value="image">Image</option><option value="svg">SVG icon</option></select><input class="icon-value" data-index="${i}" type="text" maxlength="12" aria-label="${name} icon value"></div><input class="icon-file" data-index="${i}" type="file" accept="image/*,.svg,image/svg+xml" hidden></div>`).join('');
+    elements.outside.innerHTML=CORNER_NAMES.map((name,i)=>`<div class="corner-editor" data-corner="${i}"><strong>${name}</strong><div class="corner-editor-row"><select class="icon-type" data-index="${i}" aria-label="${name} icon type"><option value="emoji">Emoji</option><option value="text">Text</option><option value="image">Image</option><option value="svg">SVG icon</option></select><input class="icon-value" data-index="${i}" type="text" maxlength="12" aria-label="${name} icon value"></div><input class="icon-file" data-index="${i}" type="file" accept="image/*,.svg,image/svg+xml" hidden><div class="icon-options"><span>Rotation</span><input class="icon-angle" data-index="${i}" type="range" min="-180" max="180" step="1" value="0" aria-label="${name} icon rotation"><input class="icon-angle-value" data-index="${i}" type="number" min="-180" max="180" step="1" value="0" aria-label="${name} exact rotation angle"></div></div>`).join('');
     elements.colors.innerHTML=Array.from({length:8},(_,i)=>`<label>No. ${i+1}<input type="color" data-index="${i}"></label>`).join('');
     elements.numbers.innerHTML=Array.from({length:8},(_,i)=>`<label>${i+1}<input type="text" inputmode="numeric" maxlength="4" data-index="${i}"></label>`).join('');
     const angles=[-180,-90,0,90,180],sizes=['auto',3,3.5,4,4.5,5,5.5,6,7];
@@ -103,7 +104,7 @@
   }
   function populateEditors(){
     elements.projectName.value=state.name;elements.theme.value=state.theme;elements.accent.value=state.accent;elements.font.value=state.font;elements.showNumbers.checked=state.showNumbers!==false;elements.fold.checked=state.foldLines;elements.cut.checked=state.cutLine;
-    [...elements.outside.querySelectorAll('.corner-editor')].forEach((box,i)=>{const icon=state.icons[i];box.querySelector('.icon-type').value=icon.type;const input=box.querySelector('.icon-value'),file=box.querySelector('.icon-file');input.value=icon.value||'';input.hidden=icon.type==='image'||icon.type==='svg';file.hidden=!input.hidden;file.accept=icon.type==='svg'?'.svg,image/svg+xml':'image/*';});
+    [...elements.outside.querySelectorAll('.corner-editor')].forEach((box,i)=>{const icon=state.icons[i],angle=Number(icon.angle)||0;box.querySelector('.icon-type').value=icon.type;box.querySelector('.icon-angle').value=String(angle);box.querySelector('.icon-angle-value').value=String(angle);const input=box.querySelector('.icon-value'),file=box.querySelector('.icon-file');input.value=icon.value||'';input.hidden=icon.type==='image'||icon.type==='svg';file.hidden=!input.hidden;file.accept=icon.type==='svg'?'.svg,image/svg+xml':'image/*';});
     [...elements.colors.querySelectorAll('input')].forEach((el,i)=>el.value=state.numberColors[i]);
     [...elements.numbers.querySelectorAll('input')].forEach((el,i)=>el.value=state.numbers[i]);
     [...elements.fortunes.querySelectorAll('textarea')].forEach((el,i)=>el.value=state.fortunes[i]);render();
@@ -112,7 +113,7 @@
   function changed(){ $('saveStatus').textContent='Unsaved changes';render(); }
   function readUpload(file,index,type){
     if(!file)return; if(file.size>3*1024*1024){showToast('Please choose a file smaller than 3 MB');return;}
-    const reader=new FileReader();reader.onload=()=>{state.icons[index]={type,value:'',data:String(reader.result)};changed();showToast('Corner icon updated');};reader.onerror=()=>showToast('Could not read that image');reader.readAsDataURL(file);
+    const reader=new FileReader();reader.onload=()=>{state.icons[index]={type,value:'',data:String(reader.result),angle:state.icons[index]?.angle||0};changed();showToast('Corner icon updated');};reader.onerror=()=>showToast('Could not read that image');reader.readAsDataURL(file);
   }
   function bindInputs(){
     elements.projectName.oninput=e=>{state.name=e.target.value;changed();};
@@ -123,8 +124,8 @@
     elements.numbers.oninput=e=>{if(e.target.matches('input')){state.numbers[+e.target.dataset.index]=e.target.value;changed();}};
     elements.fortunes.oninput=e=>{const i=+e.target.dataset.index;if(e.target.matches('textarea'))state.fortunes[i]=e.target.value;else if(e.target.matches('.fortune-bold'))state.fortuneStyles[i].bold=e.target.checked;else if(e.target.matches('.fortune-italic'))state.fortuneStyles[i].italic=e.target.checked;changed();};
     elements.fortunes.onchange=e=>{const i=+e.target.dataset.index;if(e.target.matches('.fortune-angle'))state.fortuneStyles[i].angle=Number(e.target.value);else if(e.target.matches('.fortune-size'))state.fortuneStyles[i].size=e.target.value==='auto'?'auto':Number(e.target.value);else return;changed();};
-    elements.outside.onchange=e=>{const i=+e.target.dataset.index;if(e.target.matches('.icon-type')){const type=e.target.value;state.icons[i]={type,value:type==='emoji'?'❤':'Label',data:''};populateEditors();changed();}else if(e.target.matches('.icon-file'))readUpload(e.target.files[0],i,state.icons[i].type);};
-    elements.outside.oninput=e=>{if(e.target.matches('.icon-value')){const i=+e.target.dataset.index;state.icons[i].value=e.target.value;changed();}};
+    elements.outside.onchange=e=>{const i=+e.target.dataset.index;if(e.target.matches('.icon-type')){const type=e.target.value;state.icons[i]={type,value:type==='emoji'?'❤':'Label',data:'',angle:state.icons[i]?.angle||0};populateEditors();changed();}else if(e.target.matches('.icon-angle')){state.icons[i].angle=Number(e.target.value);changed();}else if(e.target.matches('.icon-file'))readUpload(e.target.files[0],i,state.icons[i].type);};
+    elements.outside.oninput=e=>{const i=+e.target.dataset.index;if(e.target.matches('.icon-value')){state.icons[i].value=e.target.value;changed();}else if(e.target.matches('.icon-angle')){const angle=Number(e.target.value);state.icons[i].angle=angle;elements.outside.querySelector(`.icon-angle-value[data-index="${i}"]`).value=String(angle);changed();}else if(e.target.matches('.icon-angle-value')){const angle=Math.max(-180,Math.min(180,Number(e.target.value)||0));state.icons[i].angle=angle;elements.outside.querySelector(`.icon-angle[data-index="${i}"]`).value=String(angle);changed();}};
     elements.preview.onclick=e=>{const target=e.target.closest('[data-edit]');if(!target)return;const i=+target.dataset.index,type=target.dataset.edit;let field;if(type==='fortune')field=elements.fortunes.querySelector(`[data-index="${i}"]`);if(type==='number')field=elements.numbers.querySelector(`[data-index="${i}"]`);if(type==='icon')field=elements.outside.querySelector(`[data-corner="${i}"] input:not([hidden])`);if(type==='color')field=elements.colors.querySelector(`[data-index="${i}"]`);if(field){field.scrollIntoView({behavior:'smooth',block:'center'});field.focus();if(type==='color')field.click();}};
   }
   function download(blob,name){const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
