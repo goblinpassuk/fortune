@@ -13,10 +13,29 @@
       <span class="brand-mark" aria-hidden="true">◇</span>
       <div><h1>Fortune Teller Designer</h1><p>Design, fold and discover</p></div>
     </div>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="#home">Home</a>
+      <a href="#designer">Designer</a>
+      <button id="navInstructionsButton" type="button">Instructions</button>
+      <a href="#about">About</a>
+    </nav>
     <button id="modeButton" class="icon-button" type="button" aria-label="Toggle dark mode" title="Toggle light/dark mode">☾</button>
   </header>
 
-  <main class="app-shell">
+  <section id="home" class="hero-section">
+    <div class="hero-copy">
+      <span class="eyebrow">Create · Print · Fold · Play</span>
+      <h2>Make a fortune teller that’s completely yours.</h2>
+      <p>Design a traditional paper cootie catcher with your own colours, icons, numbers and fortunes—then print it perfectly on A4 paper.</p>
+      <div class="hero-actions"><a class="hero-primary" href="#designer">Start designing</a><button id="heroInstructionsButton" type="button">See how it folds</button></div>
+      <div class="hero-points"><span>✓ Works offline</span><span>✓ No account needed</span><span>✓ Print-ready SVG</span></div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="mini-teller"><i></i><i></i><i></i><i></i><b>♥</b><b>♥</b><b>♥</b><b>♥</b></div>
+    </div>
+  </section>
+
+  <main id="designer" class="app-shell">
     <aside class="editor-panel" aria-label="Fortune teller controls">
       <section class="control-section">
         <div class="section-heading"><h2>Project</h2><span id="saveStatus" role="status">Ready</span></div>
@@ -96,6 +115,18 @@
       </div>
     </section>
   </main>
+
+  <section id="about" class="about-section">
+    <span class="eyebrow">Made for paper play</span>
+    <h2>Everything you need, all in one page.</h2>
+    <div class="feature-grid">
+      <article><span>✎</span><h3>Easy to customise</h3><p>Edit every fortune, icon, number, colour and text style while watching the design update instantly.</p></article>
+      <article><span>◇</span><h3>Correct folding geometry</h3><p>The carefully measured A4 template cuts and folds into a working traditional fortune teller.</p></article>
+      <article><span>⇩</span><h3>Save and print</h3><p>Keep projects locally, save custom themes and export sharp SVG, PDF or PNG files whenever you like.</p></article>
+    </div>
+  </section>
+
+  <footer class="site-footer"><span>Fortune Teller Designer</span><a href="#home">Back to top ↑</a></footer>
 
   <section id="printArea" aria-hidden="true">
     <div id="printDesign" class="print-page print-design"></div>
